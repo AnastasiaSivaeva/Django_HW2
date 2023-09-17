@@ -2,6 +2,8 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView
+from .forms import  ImageForm
+from django.core.files.storage import FileSystemStorage
 
 from myapp.models import Order
 from unicodedata import decimal
@@ -31,3 +33,14 @@ class TemplIf(TemplateView):
         orders = Order.objects.filter(user=user).all()
         context['order'] = orders
         return context
+
+    def upload_image(request):
+        if request.method == 'POST':
+            form = ImageForm(request.POST, request.FILES)
+            if form.is_valid():
+                image = form.cleaned_data['image']
+                fs = FileSystemStorage()
+                fs.save(image.name, image)
+        else:
+            form = ImageForm()
+            return render(request, 'myapp/upload_image.html', {'form': form})
