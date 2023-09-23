@@ -1,0 +1,46 @@
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.views import View
+from django.views.generic import TemplateView
+from .forms import  ImageForm
+from django.core.files.storage import FileSystemStorage
+
+from myapp.models import Order
+from unicodedata import decimal
+from .models import User, Order, Product
+
+
+def hello(request):
+    return HttpResponse("Hello World from function!")
+
+
+class HelloView(View):
+    def get(self, request):
+        return HttpResponse("Hello World from class!")
+
+
+def my_view(request):
+    context = {"name": "John"}
+    return render(request, "myapp/index.html", context)
+
+
+class TemplIf(TemplateView):
+    template_name = "myapp/templ_if.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = User.objects.get(pk=self.kwargs['id_user'])
+        orders = Order.objects.filter(user=user).all()
+        context['order'] = orders
+        return context
+
+    def upload_image(request):
+        if request.method == 'POST':
+            form = ImageForm(request.POST, request.FILES)
+            if form.is_valid():
+                image = form.cleaned_data['image']
+                fs = FileSystemStorage()
+                fs.save(image.name, image)
+        else:
+            form = ImageForm()
+            return render(request, 'myapp/upload_image.html', {'form': form})
